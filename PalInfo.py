@@ -106,7 +106,7 @@ class PalObject:
                 self._img = ImageTk.PhotoImage(Image.open(f'resources/{n}.png').resize((240,240)))
             else:
                 self._img = ImageTk.PhotoImage(Image.open(f'resources/#ERROR.png').resize((240,240)))
-
+        return self._img
 
     def GetPrimary(self):
         return self._primary
@@ -723,10 +723,10 @@ class PalGuid:
                 for p in e['value']['RawData']['value']['players']:
                     nickname = p['player_info']['player_name']
                     if nickname == "":
-                        players[f"NoName-{p['player_uid']}"] = str(p['player_uid'])
+                        players[f"NoName-{str(p['player_uid'])}"] = str(p['player_uid'])
                     else:
                         if nickname in players:
-                            players[nickname + p['player_uid']] = str(p['player_uid'])
+                            players[nickname + str(p['player_uid'])] = str(p['player_uid'])
                         else:
                             players[nickname] = str(p['player_uid'])
         return players
