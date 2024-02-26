@@ -398,20 +398,30 @@ class PalEdit():
 
         p = 0
         self.learntMoves.delete(0, tk.constants.END)
+
+        removenone = False
         for i in pal._learntMoves:
             an = PalInfo.PalAttacks[i]
-            if i in pal._equipMoves:
-                self.learntMoves.insert(0, an)
-                self.learntMoves.itemconfig(0, {'bg': 'lightgrey'})
-                p += 1
-            elif i in PalInfo.PalLearnSet[pal.GetCodeName()]:
-                if PalInfo.PalLearnSet[pal.GetCodeName()][i] <= pal.GetLevel():
-                    if not i in pal._equipMoves:
-                        self.learntMoves.insert(p, an)
-                        self.learntMoves.itemconfig(p, {'bg': 'darkgrey'})
+            if an == "None":
+                removenone = True
             else:
-                self.learntMoves.insert(tk.constants.END, an)
-
+                if i in pal._equipMoves:
+                    self.learntMoves.insert(0, an)
+                    self.learntMoves.itemconfig(0, {'bg': 'lightgrey'})
+                    p += 1
+                elif i in PalInfo.PalLearnSet[pal.GetCodeName()]:
+                    if PalInfo.PalLearnSet[pal.GetCodeName()][i] <= pal.GetLevel():
+                        if not i in pal._equipMoves:
+                            self.learntMoves.insert(p, an)
+                            self.learntMoves.itemconfig(p, {'bg': 'darkgrey'})
+                else:
+                    self.learntMoves.insert(tk.constants.END, an)
+        if removenone:
+            try:
+                pal.StripAttack("None")
+            except Exception as e:
+                traceback.print_exception(e)
+        
         self.ptype.config(text=pal.GetPrimary(), bg=PalInfo.PalElements[pal.GetPrimary()])
         self.stype.config(text=pal.GetSecondary(), bg=PalInfo.PalElements[pal.GetSecondary()])
 

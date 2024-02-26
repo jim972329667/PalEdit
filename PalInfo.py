@@ -568,7 +568,7 @@ class PalEntity:
 
     def FruitAttack(self, name):
         if not name in self._learntMoves:
-            if name is not "None":
+            if name != "None":
                 self._learntMoves.append(name)
 
     def RemoveSkill(self, slot):
