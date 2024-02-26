@@ -968,7 +968,7 @@ Do you want to use %s's DEFAULT Scaling (%s)?
         
         global filemenu
         filemenu = tk.Menu(tools, tearoff=0)
-        filemenu.add_command(label=self.i18n['menu_load_save'], command=self.loadfile)
+        filemenu.add_command(label=self.i18n['menu_load_save'], command=self.newwind)
         self.i18n_el['menu_load_save'] = (filemenu, 0)
         filemenu.add_command(label=self.i18n['menu_save'], command=self.savefile)
         self.i18n_el['menu_save'] = (filemenu, 1)
@@ -1636,6 +1636,72 @@ Do you want to use %s's DEFAULT Scaling (%s)?
     def mainloop(self):
         self.gui.mainloop()
 
+    def GetWorldName(filedir):
+        file = os.path.join(filedir,'LevelMeta.sav')
+        if os.path.exists(file):
+            tmp = SaveConverter.convert_sav_to_obj(file)
+            return f"{tmp['properties']['SaveData']['value']['WorldName']['value']} : {tmp['properties']['SaveData']['value']['HostPlayerName']['value']}" 
+        elif os.path.exists(os.path.join(filedir,'Level.sav')):
+            return os.path.basename(filedir)
+        else:
+            return None
+
+    def newwind(self):
+        self.winNew = Toplevel(self.gui)
+        window_height = 230
+        window_width = 320
+        screen_width = self.gui.winfo_screenwidth()
+        screen_height = self.gui.winfo_screenheight()
+        x_cordinate = int((screen_width / 2) - (window_width / 2))
+        y_cordinate = int((screen_height / 2) - (window_height / 2))
+        self.winNew.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+        self.winNew.title('选择Pal世界：')
+
+        frame1 = Frame(self.winNew, relief=RAISED)
+        frame1.pack(fill=X,side=tk.LEFT)
+        
+        scrollbar = tk.Scrollbar(frame1)
+        scrollbar.pack(side=tk.constants.LEFT, fill=tk.constants.Y)
+        self.Lstbox1 = tk.Listbox(frame1, width=30, yscrollcommand=scrollbar.set, exportselection=0)
+        self.Lstbox1.pack(side=tk.constants.LEFT, fill=tk.constants.BOTH)
+        scrollbar.config(command=self.listdisplay.yview)
+
+
+        frame2 = Frame(self.winNew, relief=GROOVE)
+        frame2.pack(fill=X,side=tk.LEFT)
+
+        self.filelist = []
+        self.Lstbox1.delete(0, END)
+        for item in os.scandir(os.path.expanduser('~') + "\\AppData\\Local\\Pal\\Saved\\SaveGames"):
+            if item.is_dir():
+                for world in os.scandir(item.path):
+                    if world.is_dir():
+                        listitem = PalEdit.GetWorldName(world.path)
+                        if listitem:
+                            self.Lstbox1.insert(END, listitem)
+                            self.filelist.append(os.path.join(world.path, 'Level.sav'))
+
+        
+        
+        btClose=Button(frame2, text='选择', command=self.SelectLstbox)
+        btClose.pack(side=TOP, expand=True, fill=BOTH)
+        openbtn=Button(frame2, text='手动选择存档', command=self.loadfile)
+        openbtn.pack(side=TOP, expand=True, fill=BOTH)
+
+    def SelectLstbox(self):
+            if self.Lstbox1.curselection() != ():
+                index = int(self.Lstbox1.curselection()[0])
+                file = self.filelist[index]
+                self.filename = file
+                self.winNew.destroy()   
+                self.gui.title(f"PalEdit v{PalEditConfig.version} - {file}")
+                self.skilllabel.config(text=self.i18n['msg_decompressing'])
+                with open(file, "rb") as f:
+                    data = f.read()
+                    raw_gvas, _ = decompress_sav_to_gvas(data)
+                self.skilllabel.config(text=self.i18n['msg_loading'])
+                gvas_file = GvasFile.read(raw_gvas, PALWORLD_TYPE_HINTS, PALWORLD_CUSTOM_PROPERTIES)
+                self.loaddata(gvas_file)
 
     def cleanup_pal_selection(self):
         # workaround so onselect no longer tries to get pals using pal[newplayer][oldindex]
