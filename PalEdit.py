@@ -877,7 +877,7 @@ Do you want to use %s's DEFAULT Scaling (%s)?
             i = self.palguidmanager.GetEmptySlotIndex(slotguid)
             if i == -1:
                 print("Player Pal Storage is full!")
-                return
+                break
             pal.InitializationPal(newguid, playerguid, groupguid, slotguid)
             self.palguidmanager.AddGroupSaveData(groupguid, newguid)
             self.palguidmanager.SetContainerSave(slotguid, i, newguid)
