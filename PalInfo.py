@@ -250,6 +250,18 @@ class PalEntity:
             else:
                 i+=1
 
+    def GetAvailableSkills(self):
+        avail_skills = []
+        for skill_codename in SkillExclusivity:
+            if skill_codename == '':
+                continue
+            if SkillExclusivity[skill_codename] is None or self._type.GetCodeName() in SkillExclusivity[skill_codename]:
+                avail_skills.append(skill_codename)
+
+        avail_skills.sort(key=lambda e: PalAttacks[e])
+        avail_skills.remove("None")
+        return avail_skills
+
     def CleanseAttacks(self):
         i = 0
         while i < len(self._learntMoves):
@@ -533,6 +545,31 @@ class PalEntity:
             self._obj['Rank']['value'] = self._rank = value # we dont +1 here, since we have methods to patch rank in PalEdit.py
         else:
             print(f"[ERROR:] Failed to update rank for: '{self.GetName()}'") # we probably could get rid of this line, since you add rank if missing - same with level
+
+    def PurgeAttack(self, slot):
+        if slot >= len(self._equipMoves):
+            return
+        p = self._equipMoves.pop(slot)
+        if not p in PalLearnSet[self.GetCodeName()]:
+            self._learntMoves.remove(p)
+        else:
+            if PalLearnSet[self.GetCodeName()][p] > self.GetLevel():
+                self._learntMoves.remove(p)
+
+    def StripAttack(self, name):
+        strip = False
+        if not name in self._equipMoves:
+            if not name in PalLearnSet[self.GetCodeName()]:
+                strip = True
+            elif PalLearnSet[self.GetCodeName()][name] > self.GetLevel():
+                strip = True
+        if strip:
+            self._learntMoves.remove(name)
+
+    def FruitAttack(self, name):
+        if not name in self._learntMoves:
+            if name is not "None":
+                self._learntMoves.append(name)
 
     def RemoveSkill(self, slot):
         if slot < len(self._skills):

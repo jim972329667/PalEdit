@@ -31,7 +31,7 @@ class UUIDEncoder(json.JSONEncoder):
 
 import traceback
 class PalEditConfig:
-    version = "0.6.3"
+    version = "0.6.7"
     ftsize = 18
     font = "Arial"
     badskill = "#DE3C3A"
@@ -393,6 +393,24 @@ class PalEdit():
         self.hthstatval.config(text=calc["HP"])
         self.atkstatval.config(text=calc["ATK"])
         self.defstatval.config(text=calc["DEF"])
+
+        self.fruitOptions['values'] = [PalInfo.PalAttacks[aval] for aval in pal.GetAvailableSkills()]
+
+        p = 0
+        self.learntMoves.delete(0, tk.constants.END)
+        for i in pal._learntMoves:
+            an = PalInfo.PalAttacks[i]
+            if i in pal._equipMoves:
+                self.learntMoves.insert(0, an)
+                self.learntMoves.itemconfig(0, {'bg': 'lightgrey'})
+                p += 1
+            elif i in PalInfo.PalLearnSet[pal.GetCodeName()]:
+                if PalInfo.PalLearnSet[pal.GetCodeName()][i] <= pal.GetLevel():
+                    if not i in pal._equipMoves:
+                        self.learntMoves.insert(p, an)
+                        self.learntMoves.itemconfig(p, {'bg': 'darkgrey'})
+            else:
+                self.learntMoves.insert(tk.constants.END, an)
 
         self.ptype.config(text=pal.GetPrimary(), bg=PalInfo.PalElements[pal.GetPrimary()])
         self.stype.config(text=pal.GetSecondary(), bg=PalInfo.PalElements[pal.GetSecondary()])
@@ -953,6 +971,27 @@ Do you want to use %s's DEFAULT Scaling (%s)?
         self.replaceitem(i, pal)
         self.refresh(i)
 
+    def stripMove(self):
+        if not self.isPalSelected():
+            return
+        i = int(self.listdisplay.curselection()[0])
+        pal = self.palbox[self.players[self.current.get()]][i]
+
+        m = self.learntMoves.curselection()
+        if len(m) > 0:
+            m = self.learntMoves.get(int(m[0]))
+            pal.StripAttack(PalInfo.find(m))
+            self.refresh(i)
+
+    def appendMove(self):
+        if not self.isPalSelected():
+            return
+        i = int(self.listdisplay.curselection()[0])
+        pal = self.palbox[self.players[self.current.get()]][i]
+
+        pal.FruitAttack(PalInfo.find(self.fruitPicker.get()))
+        self.refresh(i)
+
     def createWindow(self):
         root = tk.Tk()
         root.title(f"PalEdit v{PalEditConfig.version}")
@@ -1099,6 +1138,38 @@ Do you want to use %s's DEFAULT Scaling (%s)?
         self.attackdrops[2].config(highlightbackground=PalInfo.PalElements["Dark"],
                                    bg=PalEdit.mean_color(PalInfo.PalElements["Dark"], "ffffff"),
                                    activebackground=PalEdit.mean_color(PalInfo.PalElements["Dark"], "ffffff"))
+
+        learntWaza = tk.Frame(atkskill)
+        learntWaza.pack(fill=tk.constants.BOTH)
+
+        wazaDisplay = tk.Frame(learntWaza)
+        wazaDisplay.pack(side=tk.constants.LEFT, fill=tk.constants.Y)
+        wazaButtons = tk.Frame(learntWaza)
+        wazaButtons.pack(side=tk.constants.RIGHT, fill=tk.constants.BOTH, expand=True)
+
+        wazaScroll = tk.Frame(wazaDisplay)
+        wazaScroll.pack()
+        scrollbar = tk.Scrollbar(wazaScroll)
+        scrollbar.pack(side=tk.constants.LEFT, fill=tk.constants.Y)
+        self.learntMoves = tk.Listbox(wazaScroll, width=30, yscrollcommand=scrollbar.set, exportselection=0)
+        self.learntMoves.pack(side=tk.constants.LEFT, fill=tk.constants.X)
+
+        removeMove = tk.Button(wazaButtons, fg="red", text="🗑", borderwidth=1, font=(PalEditConfig.font, PalEditConfig.ftsize - 2),
+                              command=self.stripMove,
+                              bg="darkgrey")
+        removeMove.pack(fill=tk.constants.BOTH, expand=True)
+        
+        #self.listdisplay.bind("<<ListboxSelect>>", self.onselect)
+        scrollbar.config(command=self.learntMoves.yview)
+
+        # ➕
+        self.fruitPicker = StringVar()
+        self.fruitOptions = ttk.Combobox(wazaDisplay, textvariable=self.fruitPicker)
+        self.fruitOptions.pack(fill=tk.constants.BOTH)
+        addMove = tk.Button(wazaButtons, text="➕", borderwidth=1, font=(PalEditConfig.font, PalEditConfig.ftsize - 10),
+                              command=self.appendMove,
+                              bg="darkgrey")
+        addMove.pack(side=tk.constants.RIGHT, fill=tk.constants.BOTH, expand=True)
 
         stats = tk.Frame(atkskill)
         stats.pack(fill=tk.constants.X)
