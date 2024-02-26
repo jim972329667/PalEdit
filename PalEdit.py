@@ -1640,7 +1640,7 @@ Do you want to use %s's DEFAULT Scaling (%s)?
         file = os.path.join(filedir,'LevelMeta.sav')
         if os.path.exists(file):
             tmp = SaveConverter.convert_sav_to_obj(file)
-            return f"{tmp['properties']['SaveData']['value']['WorldName']['value']} : {tmp['properties']['SaveData']['value']['HostPlayerName']['value']}" 
+            return f"{tmp['properties']['SaveData']['value']['WorldName']['value']} : {tmp['properties']['SaveData']['value']['HostPlayerName']['value']} : {tmp['properties']['SaveData']['value']['HostPlayerLevel']['value']}" 
         elif os.path.exists(os.path.join(filedir,'Level.sav')):
             return os.path.basename(filedir)
         else:
