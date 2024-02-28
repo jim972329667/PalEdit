@@ -133,6 +133,7 @@ If you’ve installed Palworld via Steam, you can also access your save files by
 > If you think you can help us deliver any of the features listed below, please feel free to open a pull request.
 
 - **Pending features:**
+  - [ ] XGP Save Editing
   - [ ] Pal Deletion
   - [ ] Stat Editing (Hero Statue)
   - [ ] Edit Pals Nickname
